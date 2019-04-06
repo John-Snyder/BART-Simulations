@@ -1,26 +1,89 @@
+options(java.parameters = "-Xmx50g")
 library(bartMachine)
+numcores <- parallel::detectCores()
+set_bart_machine_num_cores(numcores - 1)
+
 library(xgboost)
+library(randomForestSRC)
 library(dplyr)
 
-p <- 5
-p0 <- 95
-prior <- c(rep(10, times = p), rep(1, times = p0))
+#Friedman Data Function
 gen_friedman_data = function(n, p, sigma){
    if (p < 5){stop("p must be greater than or equal to 5")}
    X <- matrix(runif(n * p), nrow = n, ncol = p)
-   y <- 10 * sin(pi * X[, 1] * X[, 2]) + 20 * (X[, 3] - .5)^2 +
-   10 * X[, 4] + 5 * X[, 5] + rnorm(n, 0, sigma)
+   y <- 10 * sin(pi * X[, 1] * X[, 2]) + 20 * (X[, 3] - .5)^2 + 10 * X[, 4] + 5 * X[, 5] + rnorm(n, 0, sigma)
    data.frame(y, X)
-   }
-ntrain <- 500
-sigma <- 2
-fr_data <- gen_friedman_data(ntrain, p + p0, sigma)
-y <- fr_data$y
-X <- fr_data[, 2:101] %>% data.frame
+}
+
+#Mirsha's Bird Function
+gen_MirshasBird_data = function(n, p, sigma){
+  if (p < 2){stop("p must be greater than or equal to 2")}
+  X <- matrix(runif(n * p), nrow = n, ncol = p)
+  X[,1] <- runif(n,-10,0)
+  X[,2] <- runif(n,-6.5,0)
+  y <- sin(X[,2])*exp((1-cos(X[,1]))^2) + cos(X[,1])*exp((1-sin(X[,2]))^2) + (X[,1] - X[,2])^2 + rnorm(n, 0, sigma)
+  data.frame(y, X)
+}
+
+nsim <- 5
+ntrain <- 1000
 ntest <- 500
-fr_data <- gen_friedman_data(ntest, p + p0, sigma)
-Xtest <- fr_data[, 2:101] %>% data.frame
-ytest <- fr_data$y
+p_related <- 5
+p_null <- 95
+sigma <- 1
+
+BART_RMSE <- XGBT_RMSE <- RANF_RMSE <- {}
+for(i in 1:nsim)
+{
+  #Generate Data
+  n <- ntrain + ntest
+  p <- p_related + p_null
+  
+  AllData <- gen_MirshasBird_data(n,p,sigma)
+  
+  y_train <- AllData$y[1:ntrain]
+  y_test <- AllData$y[(ntrain+1):n]
+  
+  X.train <- AllData[1:ntrain,-1] 
+  X.test <- AllData[(ntrain+1):n,-1] 
+  
+  bart.model <- bartMachine(X.train,y_train,
+                            num_trees = 200,
+                            num_burn_in = 500,
+                            num_iterations_after_burn_in = 2000,
+                            verbose = FALSE)
+  
+  RF.model <- randomForest(y~.,data = AllData[1:ntrain,],ntree=500)
+  
+  ########
+  dtrain <- xgb.DMatrix(data = as.matrix(X.train), label= y_train)
+  dtest <- xgb.DMatrix(data = as.matrix(X.test), label= y_test)
+  
+  XG.model <- xgboost(data = dtrain, # the data   
+                   booster = "gbtree", objective = "reg:linear",
+                   nround = 20) # max number of boosting iterations)  # the objective function
+  
+  BART.preds <- predict(bart.model, X.test)
+  RF.preds <- predict(RF.model, X.test)
+  XG.preds <- predict(XG.model, dtest)
+  
+  sqrt(mean((BART.preds - y_test)^2))
+  sqrt(mean((RF.preds - y_test)^2))
+  sqrt(mean((XG.preds - y_test)^2))
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 #We construct a default bartMachine model as well as a bartMachine model with the informed
 #prior and compare their performance using the RMSE metric on a test set of another 500
