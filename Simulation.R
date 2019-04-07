@@ -36,6 +36,7 @@ rownames(Mean_Results) <- rownames(SD_Results) <- c("Friedman","Mirsha","Exp","L
 
 
 n <- ntrain + ntest
+Start <- proc.time()["elapsed"]
 for(Cur_Fun in AllDataTypes)
 {
   for(i in 1:nsim)
@@ -51,8 +52,8 @@ for(Cur_Fun in AllDataTypes)
       
     #Fit BART model, automatically cross-validating
     All_Results[[Cur_Fun]]$BART$TIME[i] <- system.time(
-    bart.model <- bartMachineCV(X.train,y_train,
-                              #num_trees = 200,
+    bart.model <- bartMachine(X.train,y_train,
+                              num_trees = 200,
                               num_burn_in = 1000,
                               num_iterations_after_burn_in = 10000,
                               verbose = FALSE)
@@ -60,9 +61,10 @@ for(Cur_Fun in AllDataTypes)
       
     #Fit RandomForest
     All_Results[[Cur_Fun]]$RandomF$TIME[i] <- system.time(
-    RF.model <- randomForest(y~., data = AllData[1:ntrain,], ntree=500)
+    RF.model <- train(y~., data = AllData[1:ntrain,], method = "ranger",
+                        trControl=trctrl)$finalModel
     )["elapsed"]
-      
+
     ########
     dtrain <- xgb.DMatrix(data = as.matrix(X.train), label= y_train)
     dtest <- xgb.DMatrix(data = as.matrix(X.test), label= y_test)
@@ -82,7 +84,7 @@ for(Cur_Fun in AllDataTypes)
       
     BART.preds <- predict(bart.model, X.test)
     XG.preds <- predict(XG.model, dtest)
-    RF.preds <- predict(RF.model, X.test)
+    RF.preds <- predict(RF.model, X.test)$predictions
     LR.preds <- predict(LR.model, X.test)
       
     All_Results[[Cur_Fun]]$BART$RMSE[i] <- sqrt(mean((BART.preds - y_test)^2))
@@ -93,6 +95,11 @@ for(Cur_Fun in AllDataTypes)
     sprintf("Finished iteration %s out of %s for %s",i,nsim,Cur_Fun) %>% print()
   }
 }
+
+print(sprintf("%s simulations finished in %s seconds.  Averaged %s seconds per sim",
+        nsim,
+        proc.time()["elapsed"] - Start,
+        (proc.time()["elapsed"] - Start)/nsim))
 
 TabNames <- lapply(All_Results,function(l) names(l))[[1]]
 Results <- lapply(All_Results,function(l) lapply(l, function(tab) colMeans(tab))) %>%

@@ -1,4 +1,3 @@
-#Friedman Data Function
 Generate_Data <- function(nonlin_f, n, p_null, sigma)
 {
   if(nonlin_f == "Friedman"){
