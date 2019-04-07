@@ -14,45 +14,45 @@ source("Data_Generation.R")
 nsim <- 3
 ntrain <- 2000
 ntest <- 500
-p_null <- 0
+p.null <- 0
 sigma <- 1
 AllDataTypes <- c("Friedman","Mirsha","Exp","Linear")
 
-Sim_Result_Empty <- data.frame(RMSE = rep(NA,nsim),
+Sim.Result.Empty <- data.frame(RMSE = rep(NA,nsim),
                          TIME = rep(NA,nsim))
-All_Res_Empty <- list(BART = Sim_Result_Empty,
-                      XGBoost = Sim_Result_Empty,
-                      RandomF = Sim_Result_Empty,
-                      LinReg = Sim_Result_Empty)
+All.Res.Empty <- list(BART = Sim.Result.Empty,
+                      XGBoost = Sim.Result.Empty,
+                      RandomF = Sim.Result.Empty,
+                      LinReg = Sim.Result.Empty)
 
-All_Results <- list(All_Res_Empty,All_Res_Empty,All_Res_Empty,All_Res_Empty)
-names(All_Results) <- AllDataTypes
+All.Results <- list(All.Res.Empty,All.Res.Empty,All.Res.Empty,All.Res.Empty)
+names(All.Results) <- AllDataTypes
 
-Mean_Results <- SD_Results <- Time_Results <- data.frame(BART = rep(NA,4),
+Mean.Results <- SD.Results <- Time.Results <- data.frame(BART = rep(NA,4),
                                                          XGboost = rep(NA,4),
                                                          RandomF = rep(NA,4),
                                                          LinReg = rep(NA,4))
-rownames(Mean_Results) <- rownames(SD_Results) <- c("Friedman","Mirsha","Exp","Linear")
+rownames(Mean.Results) <- rownames(SD.Results) <- c("Friedman","Mirsha","Exp","Linear")
 
 
 n <- ntrain + ntest
 Start <- proc.time()["elapsed"]
-for(Cur_Fun in AllDataTypes)
+for(Cur.Fun in AllDataTypes)
 {
   for(i in 1:nsim)
   {
     #Generate Data
-    AllData <- Generate_Data(nonlin_f = Cur_Fun, n, p_null, sigma)
+    AllData <- Generate.Data(nonlin.f = Cur.Fun, n, p.null, sigma)
       
-    y_train <- AllData$y[1:ntrain]
-    y_test <- AllData$y[(ntrain+1):n]
+    y.train <- AllData$y[1:ntrain]
+    y.test <- AllData$y[(ntrain+1):n]
     
     X.train <- AllData[1:ntrain,-1] 
     X.test <- AllData[(ntrain+1):n,-1] 
       
     #Fit BART model, automatically cross-validating
-    All_Results[[Cur_Fun]]$BART$TIME[i] <- system.time(
-    bart.model <- bartMachine(X.train,y_train,
+    All.Results[[Cur.Fun]]$BART$TIME[i] <- system.time(
+    bart.model <- bartMachine(X.train,y.train,
                               num_trees = 200,
                               num_burn_in = 1000,
                               num_iterations_after_burn_in = 10000,
@@ -60,25 +60,25 @@ for(Cur_Fun in AllDataTypes)
     )["elapsed"]
       
     #Fit RandomForest
-    All_Results[[Cur_Fun]]$RandomF$TIME[i] <- system.time(
+    All.Results[[Cur.Fun]]$RandomF$TIME[i] <- system.time(
     RF.model <- train(y~., data = AllData[1:ntrain,], method = "ranger",
                         trControl=trctrl)$finalModel
     )["elapsed"]
 
     ########
-    dtrain <- xgb.DMatrix(data = as.matrix(X.train), label= y_train)
-    dtest <- xgb.DMatrix(data = as.matrix(X.test), label= y_test)
+    dtrain <- xgb.DMatrix(data = as.matrix(X.train), label= y.train)
+    dtest <- xgb.DMatrix(data = as.matrix(X.test), label= y.test)
     
-    All_Results[[Cur_Fun]]$XGBoost$TIME[i] <- system.time(
+    All.Results[[Cur.Fun]]$XGBoost$TIME[i] <- system.time(
     XG.model <- train(y~., data = AllData[1:ntrain,], method = "xgbTree",
                     trControl=trctrl,
-                    tuneGrid = tune_grid_XGboost,
+                    tuneGrid = tune.grid.XGboost,
                     tuneLength = 20)$finalModel
     )["elapsed"] 
     
       
     # fit linear regression for funsies
-    All_Results[[Cur_Fun]]$LinReg$TIME[i] <- system.time(
+    All.Results[[Cur.Fun]]$LinReg$TIME[i] <- system.time(
     LR.model <- lm(y~., data = AllData[1:ntrain,])
     )["elapsed"]
       
@@ -87,12 +87,12 @@ for(Cur_Fun in AllDataTypes)
     RF.preds <- predict(RF.model, X.test)$predictions
     LR.preds <- predict(LR.model, X.test)
       
-    All_Results[[Cur_Fun]]$BART$RMSE[i] <- sqrt(mean((BART.preds - y_test)^2))
-    All_Results[[Cur_Fun]]$XGBoost$RMSE[i] <- sqrt(mean((XG.preds - y_test)^2))
-    All_Results[[Cur_Fun]]$RandomF$RMSE[i] <- sqrt(mean((RF.preds - y_test)^2))
-    All_Results[[Cur_Fun]]$LinReg$RMSE[i] <- sqrt(mean((LR.preds - y_test)^2))
+    All.Results[[Cur.Fun]]$BART$RMSE[i] <- sqrt(mean((BART.preds - y.test)^2))
+    All.Results[[Cur.Fun]]$XGBoost$RMSE[i] <- sqrt(mean((XG.preds - y.test)^2))
+    All.Results[[Cur.Fun]]$RandomF$RMSE[i] <- sqrt(mean((RF.preds - y.test)^2))
+    All.Results[[Cur.Fun]]$LinReg$RMSE[i] <- sqrt(mean((LR.preds - y.test)^2))
     
-    sprintf("Finished iteration %s out of %s for %s",i,nsim,Cur_Fun) %>% print()
+    sprintf("Finished iteration %s out of %s for %s",i,nsim,Cur.Fun) %>% print()
   }
 }
 
@@ -101,37 +101,11 @@ print(sprintf("%s simulations finished in %s seconds.  Averaged %s seconds per s
         proc.time()["elapsed"] - Start,
         (proc.time()["elapsed"] - Start)/nsim))
 
-TabNames <- lapply(All_Results,function(l) names(l))[[1]]
-Results <- lapply(All_Results,function(l) lapply(l, function(tab) colMeans(tab))) %>%
+TabNames <- lapply(All.Results,function(l) names(l))[[1]]
+Results <- lapply(All.Results,function(l) lapply(l, function(tab) colMeans(tab))) %>%
   lapply(function(x) x %>% unlist %>% matrix(.,ncol=2,byrow=TRUE))
 for(i in 1:length(Results))
 {
   rownames(Results[[i]]) <- TabNames
-  colnames(Results[[i]]) <- c("mean_RMSE","mean_TIME")
+  colnames(Results[[i]]) <- c("mean.RMSE","mean.TIME")
 }
-
-
-
-
-
-
-
-
-
-
-# # xgb.fit <- xgboost(data = data.matrix(Xtrain), label = XSalePrice,
-# #                    booster = "gbtree", objective = "reg:linear",
-# #                    colsample_bytree = 0.2, gamma = 0.0,
-# #                    learning_rate = 0.05, max_depth = 6,
-# #                    min_child_weight = 1.5, n_estimators = 7300,
-# #                    reg_alpha = 0.9, reg_lambda = 0.5,
-# #                    subsample = 0.2, seed = 42,
-# #                    silent = 1, nrounds = 25)
-# 
-# pred <- predict(model, dtest)
-# 
-# # get & print the classification error
-# err <- mean(as.numeric(pred > 0.5) != test_labels)
-# print(paste("test-error=", err))
-# xgb.pred <- predict(xgb.fit, data.matrix(Xtrain))
-# postResample(xgb.pred, XSalePrice)
