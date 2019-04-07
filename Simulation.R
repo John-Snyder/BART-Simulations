@@ -42,7 +42,7 @@ for(Cur.Fun in AllDataTypes)
   for(i in 1:nsim)
   {
     #Generate Data
-    AllData <- Generate.Data(nonlin.f = Cur.Fun, n, p.null, sigma)
+    AllData <- Generate.Data(nonlin_f = Cur_Fun, n, p.null, sigma)
       
     y.train <- AllData$y[1:ntrain]
     y.test <- AllData$y[(ntrain+1):n]
@@ -50,7 +50,7 @@ for(Cur.Fun in AllDataTypes)
     X.train <- AllData[1:ntrain,-1] 
     X.test <- AllData[(ntrain+1):n,-1] 
       
-    #Fit BART model, automatically cross-validating
+    #Fit BART model
     All.Results[[Cur.Fun]]$BART$TIME[i] <- system.time(
     bart.model <- bartMachine(X.train,y.train,
                               num_trees = 200,
@@ -61,8 +61,9 @@ for(Cur.Fun in AllDataTypes)
       
     #Fit RandomForest
     All.Results[[Cur.Fun]]$RandomF$TIME[i] <- system.time(
-    RF.model <- train(y~., data = AllData[1:ntrain,], method = "ranger",
-                        trControl=trctrl)$finalModel
+    RF.model <- train(y~., data = AllData[1:ntrain,], method = "rf",
+                        trControl=trctrl,
+                        tuneGrid = tune.grid.RandomForest)$finalModel
     )["elapsed"]
 
     ########
@@ -73,7 +74,7 @@ for(Cur.Fun in AllDataTypes)
     XG.model <- train(y~., data = AllData[1:ntrain,], method = "xgbTree",
                     trControl=trctrl,
                     tuneGrid = tune.grid.XGboost,
-                    tuneLength = 20)$finalModel
+                    tuneLength = 10)$finalModel
     )["elapsed"] 
     
       
@@ -84,7 +85,7 @@ for(Cur.Fun in AllDataTypes)
       
     BART.preds <- predict(bart.model, X.test)
     XG.preds <- predict(XG.model, dtest)
-    RF.preds <- predict(RF.model, X.test)$predictions
+    RF.preds <- predict(RF.model, X.test)
     LR.preds <- predict(LR.model, X.test)
       
     All.Results[[Cur.Fun]]$BART$RMSE[i] <- sqrt(mean((BART.preds - y.test)^2))
