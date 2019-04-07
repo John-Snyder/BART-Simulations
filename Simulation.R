@@ -42,7 +42,7 @@ for(Cur.Fun in AllDataTypes)
   for(i in 1:nsim)
   {
     #Generate Data
-    AllData <- Generate.Data(nonlin_f = Cur_Fun, n, p.null, sigma)
+    AllData <- Generate_Data(nonlin_f = Cur_Fun, n, p.null, sigma)
       
     y.train <- AllData$y[1:ntrain]
     y.test <- AllData$y[(ntrain+1):n]
