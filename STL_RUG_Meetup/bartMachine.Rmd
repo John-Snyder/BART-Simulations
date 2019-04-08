@@ -83,7 +83,7 @@ knitr::include_graphics("BART.png")
 ## Installation and loading steps
 1) Google "How to install rJava on [your OS]"
 2) Do that
-3) 
+3) Run the following
 
 ```{r BartInstallation, eval=FALSE, echo=TRUE}
 install.packages("bartMachine")
