@@ -73,6 +73,12 @@ Results:
 | Weird Exp   | 1.04        | 1.05      | 1.07   | 6.08   |
 | Linear   | 1.025        | 1.032     | 1.034   | 1.004   |
 
+\vspace{-6mm}
+
+\tiny Details in Simulation.R
+
+\normalsize
+
 - bartMachine is relatively unknown
     - xgboost: ~43k downloads per month
     - randomForest: ~88k downloads per month
@@ -246,9 +252,35 @@ bart.model.cv <- bartMachineCV(X, y,
 
 - To automatically cross validate, we just need to add a CV to the end of the function!
 
-- This takes a while
+- Will fit a variety of models and return the best one.
+    - Similar to the caret package
+
+- This takes a while.
+
+## Variable Imortance
+
+\footnotesize
+
+```{r BART_f, eval=FALSE, echo=TRUE}
+investigate_var_importance(bart.model.cv)
+```
+
+\normalsize
+
+![](RMSE_TreeSelection.png){width=10%}
 
 
+## Joint Variable Imortance
+
+\footnotesize
+
+```{r BART_g, eval=FALSE, echo=TRUE}
+interaction_investigator(bart.model.cv)
+```
+
+\normalsize
+
+![](RMSE_TreeSelection.png){width=10%}
 
 
 
