@@ -23,17 +23,19 @@ options(xtable.comment = FALSE)
 ```
 
 ## Outline
-1. Overview of Keras
+1. Brief BART overview
 
-2. RNN/LSTM
 
-3. Using Generator Functions
 
-4. How to RNN/
+2. Installation and features
 
-5. Temperature Prediction Example (time permitting)
 
-6. Final Thoughts 
+
+3. Demo
+
+
+
+4. Further Considerations
 
 ## What is BART?
 ```{r out.width="20%", fig.align='center'}
@@ -52,7 +54,14 @@ knitr::include_graphics("BART.png")
 
 ## Powerful Predictive Performance
 
-- Table with simulation result
+- 100 replications of out of sample predictive performance
+
+| Function    | BART        | XGBoost       | Random Forest | Linear Reg(lol) |
+| :---        |    :----:   |          :---: |  :----:   |  :----:   |
+| Friedman      | 1.08       | 1.21   | 1.64   | 2.61   |
+| Mirsha's Bird   | 1.53        | 2.78      | 2.90   | 26.59   |
+| Weird Exp   | 1.04        | 1.05      | 1.07   | 6.08   |
+| Linear   | 1.025        | 1.032     | 1.034   | 1.004   |
 
 - bartMachine is relatively unknown
     - xgboost: ~43k downloads per month
