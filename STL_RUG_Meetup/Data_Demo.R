@@ -1,7 +1,7 @@
 library(MASS)
 library(tidyverse)
 
-options(java.parameters = "-Xmx10g")
+options(java.parameters = "-Xmx100g")
 library(bartMachine)
 numcores <- parallel::detectCores()
 set_bart_machine_num_cores(numcores - 1)
@@ -29,16 +29,16 @@ X.test <- Boston %>% dplyr::select(-c("medv")) %>% dplyr::slice(-train)
 
 #Fit BART model
 bart.model <- bartMachine(X.train,y.train,
-                          num_trees = 200,
+                          num_trees = 20,
                           num_burn_in = 100,
                           num_iterations_after_burn_in = 100)
 
 
 bart.model
   
-k_fold_cv(X.train, y.train, k_folds = 10)
+k_fold_cv(X.train, y.train, k_folds = 5)
 
-rmse_by_num_trees(bart.model, num_replicates = 20)  
+rmse_by_num_trees(bart.model, num_replicates = 5)  
 
 bart.model.cv <- bartMachineCV(X.train, y.train,
                                num_burn_in = 100,

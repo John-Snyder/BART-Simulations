@@ -11,7 +11,7 @@ library(rpart)
 source("CV_Params.R")
 source("Data_Generation.R")
 
-nsim <- 3
+nsim <- 100
 ntrain <- 2000
 ntest <- 500
 p.null <- 0
@@ -42,7 +42,7 @@ for(Cur.Fun in AllDataTypes)
   for(i in 1:nsim)
   {
     #Generate Data
-    AllData <- Generate_Data(nonlin_f = Cur_Fun, n, p.null, sigma)
+    AllData <- Generate_Data(nonlin_f = Cur.Fun, n, p.null, sigma)
       
     y.train <- AllData$y[1:ntrain]
     y.test <- AllData$y[(ntrain+1):n]
@@ -54,8 +54,8 @@ for(Cur.Fun in AllDataTypes)
     All.Results[[Cur.Fun]]$BART$TIME[i] <- system.time(
     bart.model <- bartMachine(X.train,y.train,
                               num_trees = 200,
-                              num_burn_in = 1000,
-                              num_iterations_after_burn_in = 10000,
+                              num_burn_in = 800,
+                              num_iterations_after_burn_in = 5000,
                               verbose = FALSE)
     )["elapsed"]
       
@@ -109,4 +109,12 @@ for(i in 1:length(Results))
 {
   rownames(Results[[i]]) <- TabNames
   colnames(Results[[i]]) <- c("mean.RMSE","mean.TIME")
+}
+
+SDResults <- lapply(All.Results,function(l) lapply(l, function(tab) apply(tab,2,function(x) sd(x)/sqrt(length(x))))) %>%
+  lapply(function(x) x %>% unlist %>% matrix(.,ncol=2,byrow=TRUE))
+for(i in 1:length(Results))
+{
+  rownames(SDResults[[i]]) <- TabNames
+  colnames(SDResults[[i]]) <- c("mean.RMSE","mean.TIME")
 }
