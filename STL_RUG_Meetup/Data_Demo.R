@@ -1,16 +1,12 @@
 library(MASS)
 library(tidyverse)
 
-options(java.parameters = "-Xmx100g")
+options(java.parameters = "-Xmx10g")
 library(bartMachine)
 numcores <- parallel::detectCores()
 set_bart_machine_num_cores(numcores - 1)
 
-
-
-
 data(Boston)
-
 Boston %>% head %>% View
 
 RegressMod <- lm(formula = medv ~ ., data = Boston)
@@ -19,19 +15,14 @@ summary(RegressMod)
 set.seed(1)
 train <- sample(1:nrow(Boston), .8*nrow(Boston))
 
-y.train <- Boston$medv[train]
-y.test <- Boston$medv[-train]
-
-X.train <- Boston %>% dplyr::select(-c("medv")) %>% dplyr::slice(train)
-X.test <- Boston %>% dplyr::select(-c("medv")) %>% dplyr::slice(-train)
+y <- Boston$medv
+X <- Boston %>% dplyr::select(-c("medv"))
 
 #Fit BART model
-bart.model <- bartMachine(X.train,y.train,
-                          num_trees = 20,
-                          num_burn_in = 100,
-                          num_iterations_after_burn_in = 100)
-
-
+bart.model <- bartMachine(X,y,
+                          num_trees = 200,
+                          num_burn_in = 1000,
+                          num_iterations_after_burn_in = 5000)
 bart.model
   
 k_fold_cv(X.train, y.train, k_folds = 5)

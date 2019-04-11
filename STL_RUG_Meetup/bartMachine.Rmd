@@ -45,10 +45,20 @@ knitr::include_graphics("BART.png")
 
 ![](bayes.jpg){width=25%} ![](additive.jpg){width=18%} ![](regression.png){width=31%} ![](tree.jpg){width=22%}
 
-## Interpretation
-- Emsamble method combining many shallow trees
-- Bayesian means variation is fully quantified
-    - Yay Statistics
+## How it works
+- Emsamble method which is the sum of many shallow trees.
+- Complexity is regularized via Bayesian "priors."
+    - This frees us from ad hoc decisions
+- Uses "Bayesian Backfitting"
+    - Each tree is sequentially exposed to the residuals when all other trees are used to predict
+    
+    
+Results:
+
+- Each tree describes a tiny amount of the structure
+- The Bayesian structure means variation is fully quantified.
+    - Intervals, p-values, and model selection oh my!
+- Outperforms many common models in out of sample prediction.
 
 
 
@@ -56,7 +66,7 @@ knitr::include_graphics("BART.png")
 
 - Test RMSE of 100 random datasets simulated from various nonlinear functions (added noise with s=1)
 
-| Function    | BART        | XGBoost       | Random Forest | Linear Reg(lol) |
+| Function    | BART        | XGBoost\*       | Random Forest\* | Linear Reg(lol) |
 | :---        |    :----:   |          :---: |  :----:   |  :----:   |
 | Friedman      | 1.08       | 1.21   | 1.64   | 2.61   |
 | Mirsha's Bird   | 1.53        | 2.78      | 2.90   | 26.59   |
@@ -86,7 +96,7 @@ knitr::include_graphics("BART.png")
 
 - Export fit trees
 
-[^footnote]: MCMC
+[^footnote]: MCMC sampling is used, so speedups during model fitting aren't great
 
 
 ## Installation and loading steps
@@ -112,13 +122,26 @@ set_bart_machine_num_cores(numcores - 1)
 ## Code Time
 Coding demo
 
-## Computational Considerations
-- Table with memory/time
-
-
 ## John's Final Thought
 - BART is a powerful technique which brings many advantages
     - At the expense of computational efficiency.
+
+\vspace{-5mm}
+\footnotesize
+```{r Memory, eval=FALSE, echo=TRUE}
+# n is 10000, p is 100
+bart.model <- bartMachine(X,y,
+                          num_trees = 100,
+                          num_burn_in = 1000,
+                          num_iterations_after_burn_in = 5000,
+                          mem_cache_for_speed = TRUE)
+```
+\normalsize
+\vspace{-5mm}
+![](highmem.png){width=100%}
+
+- Statistical advantages are numerous
+- Great for small to mid sized data
 - Good results with removing expected variation and feeding residuals into BART.
 
 
