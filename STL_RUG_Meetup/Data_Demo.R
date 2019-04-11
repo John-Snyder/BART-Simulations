@@ -6,9 +6,7 @@ library(bartMachine)
 numcores <- parallel::detectCores()
 set_bart_machine_num_cores(numcores - 1)
 
-library(xgboost)
-library(randomForest)
-library(caret)
+
 
 
 data(Boston)
@@ -50,33 +48,34 @@ plot_convergence_diagnostics(bart.model.cv)
 plot_y_vs_yhat(bart.model.cv, credible_intervals = TRUE)
 
 investigate_var_importance(bart.model.cv, num_replicates_for_avg = 20) 
-interaction_investigator(bart.model.cv, num_replicates_for_avg = 25,
-                         + num_var_plot = 10, bottom_margin = 5)
+interaction_investigator(bart.model.cv, num_replicates_for_avg = 25,num_var_plot = 10, bottom_margin = 5)
 
 pd_plot(bart.model.cv, j = "lstat")
 pd_plot(bart.model.cv, j = "rm")
 
+cov_importance_test(bart.model.cv)
+cov_importance_test(bart.model.cv, covariates = "lstat")
 
 ###
+set.seed(1)
 nsim <- 1000
 x1 <- runif(nsim,-3.14,3.14)
 x2 <- runif(nsim,-3.14,3.14)
 
-y <- sin(x2)
-plot(x2,y)
-
 y <- x1+sin(x2) + rnorm(nsim)
+plot(x2,y)
 
 bart.model <- bartMachine(data.frame(x1,x2),y,
                           num_trees = 200,
                           num_burn_in = 1000,
-                          num_iterations_after_burn_in = 2000)
+                          num_iterations_after_burn_in = 4000)
 
 pd_plot(bart.model, j = "x2")
 ###
 
-cov_importance_test(bart.model.cv)
 
+library(xgboost)
+library(caret)
 
   
   
