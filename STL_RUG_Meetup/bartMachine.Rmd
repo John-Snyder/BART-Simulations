@@ -54,7 +54,7 @@ knitr::include_graphics("BART.png")
 
 ## Powerful Predictive Performance
 
-- 100 replications of out of sample predictive performance
+- Test RMSE of 100 random datasets simulated from various nonlinear functions (added noise with s=1)
 
 | Function    | BART        | XGBoost       | Random Forest | Linear Reg(lol) |
 | :---        |    :----:   |          :---: |  :----:   |  :----:   |
