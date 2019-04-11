@@ -25,13 +25,16 @@ bart.model <- bartMachine(X,y,
                           num_iterations_after_burn_in = 5000)
 bart.model
   
-k_fold_cv(X.train, y.train, k_folds = 5)
+k_fold_cv(X, y, k_folds = 10,
+          num_trees = 200,
+          num_burn_in = 1000,
+          num_iterations_after_burn_in = 5000)
 
-rmse_by_num_trees(bart.model, num_replicates = 5)  
+rmse_by_num_trees(bart.model, num_replicates = 20)  
 
-bart.model.cv <- bartMachineCV(X.train, y.train,
-                               num_burn_in = 100,
-                               num_iterations_after_burn_in = 100)
+bart.model.cv <- bartMachineCV(X, y,
+                               num_burn_in = 1000,
+                               num_iterations_after_burn_in = 5000)
   
 check_bart_error_assumptions(bart.model.cv)  
 plot_convergence_diagnostics(bart.model.cv)  
@@ -46,6 +49,10 @@ pd_plot(bart.model.cv, j = "rm")
 
 cov_importance_test(bart.model.cv)
 cov_importance_test(bart.model.cv, covariates = "lstat")
+
+vs<-
+var_selection_by_permute(bart_machine,bottom_margin = 10, num_permute_samples = 10)
+vs$important_vars_local_names
 
 ###
 set.seed(1)
