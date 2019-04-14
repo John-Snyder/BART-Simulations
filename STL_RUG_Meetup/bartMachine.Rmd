@@ -1,7 +1,9 @@
 ---
 title: "Introduction to the bartMachine R package"
 subtitle: "Saint Louis R User Group"
-author: "John Snyder"
+author: | 
+  | John Snyder
+  | me@johnsnyder.org
 date: "April 11, 2019"
 output:
     beamer_presentation:
@@ -71,6 +73,10 @@ Results:
     - bartMachine: ~2k downloads per month
     
 - No full featured python library
+
+\tiny *: Models fully cross validated
+
+\normalsize
 
 ## Package Overview:
 - Based in Java
@@ -214,6 +220,8 @@ $folds
 ````
 
 \normalsize
+
+Kindof, yes
 
 ## Select the number of Trees
 \footnotesize
