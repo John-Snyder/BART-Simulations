@@ -1,8 +1,11 @@
 library(MASS)
 library(tidyverse)
 
+# Give bartMachine 10GB of memory to use
 options(java.parameters = "-Xmx10g")
 library(bartMachine)
+
+# Allow barTMachine to use all but one core
 numcores <- parallel::detectCores()
 set_bart_machine_num_cores(numcores - 1)
 
@@ -18,20 +21,16 @@ train <- sample(1:nrow(Boston), .8*nrow(Boston))
 y <- Boston$medv
 X <- Boston %>% dplyr::select(-c("medv"))
 
-#Fit BART model
 bart.model <- bartMachine(X,y,
                           num_trees = 200,
                           num_burn_in = 1000,
                           num_iterations_after_burn_in = 5000)
 bart.model
   
-k_fold_cv(X, y, k_folds = 10,
+k_fold_cv(X, y, k_folds = 5,
           num_trees = 200,
           num_burn_in = 1000,
           num_iterations_after_burn_in = 5000)
-
-
-
 
 rmse_by_num_trees(bart.model, num_replicates = 20)  
 
@@ -54,12 +53,12 @@ RegressMod <- lm(formula = medv ~ ., data = Boston)
 summary(RegressMod)
 
 pd_plot(bart.model.cv, j = "lstat")
-cov_importance_test(bart.model.cv, covariates = "lstat")
+# The below takes a long time!
+#cov_importance_test(bart.model.cv, covariates = "lstat") 
 
 pd_plot(bart.model.cv, j = "rm")
-cov_importance_test(bart.model.cv, covariates = "rm")
-
-cov_importance_test(bart.model.cv)
+# The below takes a long time!
+#cov_importance_test(bart.model.cv, covariates = "rm")
 
 ## check your asusmptions
 check_bart_error_assumptions(bart.model.cv)  
@@ -67,46 +66,13 @@ plot_convergence_diagnostics(bart.model.cv)
 
 plot_y_vs_yhat(bart.model.cv, credible_intervals = TRUE)
 
-
-
 # predictions
 MeanDF <- colMeans(X) %>% t %>% data.frame
 MeanDF %>% head
 predict(bart.model.cv, new_data = MeanDF)
 calc_credible_intervals(bart.model.cv, MeanDF, ci_conf = 0.95) %>% round(digits=2)
-calc_prediction_intervals(bart.model.cv, MeanDF, pi_conf = 0.95) %>% round(digits=2)
 
 
-
-
-
-
-
-
-###
-set.seed(1)
-nsim <- 1000
-x1 <- runif(nsim,-3.14,3.14)
-x2 <- runif(nsim,-3.14,3.14)
-
-y <- x1+sin(x2) + rnorm(nsim)
-plot(x2,y)
-
-bart.model <- bartMachine(data.frame(x1,x2),y,
-                          num_trees = 200,
-                          num_burn_in = 1000,
-                          num_iterations_after_burn_in = 4000)
-
-pd_plot(bart.model, j = "x2")
-###
-
-
-library(xgboost)
-library(caret)
-
-  
-  
-  
   
   
   

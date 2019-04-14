@@ -1,3 +1,15 @@
+#----------------------------------------------------------------------------------------------------------#
+# The below function can be used to generate random nonlinear response data for testing the ability of
+# various machine learning techniques to predict complex relationships.
+#
+# nonlin_fun: Friedman's function, Mirsha's Bird function, an exponential function, and a linear function.
+# n: Sample size
+# p_null: a number of "extra" x variables added into the returned X data frame which do NOT affect
+#          the response variable
+# sigma: The amount of variability in the data, this value would serve as a lower bound on the predictive
+#         ablity of ANY model as it repsensnts unexplainable measurment error.
+#----------------------------------------------------------------------------------------------------------#
+
 Generate_Data <- function(nonlin_f, n, p_null, sigma)
 {
   if(nonlin_f == "Friedman"){
